@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-polyfill": "^6.26.0",
     "needle": "^2.3.2",
+    "nightmare": "^3.0.2",
     "node-telegram-bot-api": "^0.40.0",
     "sqlite-sync": "^0.3.9"
   }
