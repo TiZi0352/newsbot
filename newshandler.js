@@ -31,7 +31,7 @@ const sendInterfaxNews = (chatId) => {
         newsUrls = newsUrls.filter(x => news.filter(y => y.url == x) == 0);
 
         if (newsUrls.length == 0) {
-            bot.sendMessage(chatId, "You have got all recently news from Interfax! ✅");
+            bot.sendMessage(chatId, "You have got all recent news from Interfax! ✅");
             return;
         }
 
@@ -66,7 +66,7 @@ const sendNVNews = (chatId) => {
         newsUrls = newsUrls.filter(x => news.filter(y => y.url == x) == 0);
 
         if (newsUrls.length == 0) {
-            bot.sendMessage(chatId, "You have got all recently news from Новое Время! ✅");
+            bot.sendMessage(chatId, "You have got all recent news from Новое Время! ✅");
             return;
         }
 
@@ -103,7 +103,7 @@ const sendEPNews = (chatId) => {
             newsUrls = newsUrls.filter(x => news.filter(y => y.url == x) == 0);
 
             if (newsUrls.length == 0) {
-                bot.sendMessage(chatId, "You have got all recently news from Європейська Правда! ✅");
+                bot.sendMessage(chatId, "You have got all recent news from Європейська Правда! ✅");
                 return;
             }
 
@@ -130,7 +130,7 @@ const sendReutersNews = (chatId) => {
         var newsUrls = arr.map(x => {
             // var text = x.substring(x.indexOf(textStart) + textStart.length);
             return x.substring(x.indexOf(hrefKey) + hrefKey.length, x.indexOf('"  >'));
-        }).filter(x => x.indexOf("/article") != -1).map(x => "https://ru.reuters.com" + x);
+        }).filter(x => x.indexOf("/article") != -1).map(x => "https://ru.reuters.com" + x).filter((v, i, a) => a.indexOf(v) === i);
 
         const news = repository.getNews(chatId, newsUrls)
 
@@ -138,7 +138,7 @@ const sendReutersNews = (chatId) => {
         newsUrls = newsUrls.filter(x => news.filter(y => y.url == x) == 0);
 
         if (newsUrls.length == 0) {
-            bot.sendMessage(chatId, "You have got all recently news from Reuters! ✅");
+            bot.sendMessage(chatId, "You have got all recent news from Reuters! ✅");
             return;
         }
 
@@ -146,10 +146,20 @@ const sendReutersNews = (chatId) => {
     });
 };
 
+const deleteAll = (chatId) => {
+    var allNews = repository.getAllNews(chatId);
+
+    for (let i = 0; i < allNews.length; ++i) {
+        bot.deleteMessage(chatId, allNews[i].messageId);
+    }
+
+    repository.deleteAllNews(chatId);
+};
 
 module.exports = {
     sendInterfaxNews,
     sendNVNews,
     sendEPNews,
-    sendReutersNews
+    sendReutersNews,
+    deleteAll
 };
