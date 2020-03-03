@@ -5,22 +5,19 @@ const bot = require('./botconfig');
 const initDb = () => {
     sqlite.connect('newsbot.db');
 
-    sqlite.run(`CREATE TABLE IF NOT EXISTS messages(
-    id  INTEGER PRIMARY KEY AUTOINCREMENT, 
-    key TEXT NOT NULL UNIQUE,
-    fromId INTEGER NOT NULL,
-    messageId INTEGER NOT NULL);`,
-        function (res) {
-            if (res.error)
-                throw res.error;
-        });
+    // sqlite.run(`DROP TABLE news`,
+    //     function (res) {
+    //         if (res.error)
+    //             throw res.error;
+    //     });
 
     sqlite.run(`CREATE TABLE IF NOT EXISTS news(
         id  INTEGER PRIMARY KEY AUTOINCREMENT, 
         url TEXT NOT NULL,
         chatId INTEGER NOT NULL,
         messageId INTEGER NOT NULL,
-        date INTEGER NOT NULL);`,
+        date INTEGER NOT NULL,
+        UNIQUE (url, chatId));`,
         function (res) {
             if (res.error)
                 throw res.error;
@@ -66,6 +63,15 @@ const initDb = () => {
     // sqlite.insert("publishers", {
     //     name: "Європейська Правда",
     //     url: "https://www.eurointegration.com.ua"
+    // }, function (res) {
+    //     if (res.error) {
+    //         console.log(res);
+    //     }
+    // });
+
+    // sqlite.insert("publishers", {
+    //     name: "Українська Правда",
+    //     url: "https://www.pravda.com.ua"
     // }, function (res) {
     //     if (res.error) {
     //         console.log(res);
@@ -120,30 +126,43 @@ const getAllPublishers = () => {
 }
 
 const getChatFolowings = (chatId) => {
-    return sqlite.run(`SELECT * FROM folows where chatId = '${chatId}'`);
+    return sqlite.run(`SELECT * FROM follows where chatId = '${chatId}'`);
 }
 
-const followPublisher = (chatId, publisherName) => {
-    return new Promise(function () {
-        return sqlite.insert("follows", {
+const getAllFollows = () => {
+    var result = sqlite.run(`SELECT * FROM follows`);
+
+    result = result.filter(function (a) {
+        var key = a.chatId + '|' + a.publisherName;
+        if (!this[key]) {
+            this[key] = true;
+            return true;
+        }
+    }, Object.create(null));
+
+    return result;
+}
+
+const followOrUnfollow = (chatId, publisherName, isFollow, callback) => {
+    if (isFollow)
+        sqlite.insert("follows", {
             chatId: chatId,
             publisherName: publisherName,
             date: new Date().getTime()
         }, function (res) {
-            if (res.error) {
+            if (res.error)
                 console.log(res);
-            }
+            else
+                callback();
         });
-    });
+    else
+        sqlite.run(`DELETE FROM follows where chatId = '${chatId}' AND publisherName = '${publisherName}'`, {}, function (res) {
+            if (res.error)
+                console.log(res);
+            else
+                callback();
+        });
 }
-
-const unfollowPublisher = (chatId, publisherName) => {
-    return sqlite.run(`DELETE FROM news where chatId = '${chatId}' AND publisherName = '${publisherName}'`);
-}
-
-// const getAllPublishers = () => {
-//     return sqlite.run(`SELECT * FROM publishers`);
-// }
 
 module.exports = {
     initDb,
@@ -152,7 +171,7 @@ module.exports = {
     getAllNews,
     deleteAllNews,
     getChatFolowings,
-    followPublisher,
-    unfollowPublisher,
-    getAllPublishers
+    followOrUnfollow,
+    getAllPublishers,
+    getAllFollows
 };
