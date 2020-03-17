@@ -86,11 +86,26 @@ const initDb = () => {
     //         console.log(res);
     //     }
     // });
+
+    // sqlite.insert("publishers", {
+    //     name: "Радіо Свобода",
+    //     url: "https://www.radiosvoboda.org"
+    // }, function (res) {
+    //     if (res.error) {
+    //         console.log(res);
+    //     }
+    // });
 }
 
 const getNews = (chatId, newsUrls) => {
     var newsSqlCheck = newsUrls.map(function () { return '?' }).join(',');
     return sqlite.run(`SELECT * FROM news where chatId = '${chatId}' AND url IN (${newsSqlCheck})`, newsUrls);
+}
+
+const getNewsByChatIds = (chatIds, newsUrls) => {
+    var newsSqlCheck = newsUrls.map(function () { return '?' }).join(',');
+    var chatIdsSqlCheck = chatIds.map(function () { return '?' }).join(',');
+    return sqlite.run(`SELECT * FROM news where chatId IN (${chatIdsSqlCheck}) AND url IN (${newsSqlCheck})`, newsUrls);
 }
 
 const getAllNews = (chatId) => {
@@ -132,6 +147,7 @@ const getChatFolowings = (chatId) => {
 const getAllFollows = () => {
     var result = sqlite.run(`SELECT * FROM follows`);
 
+    // find unique objects in array based on multiple properties
     result = result.filter(function (a) {
         var key = a.chatId + '|' + a.publisherName;
         if (!this[key]) {
@@ -173,5 +189,6 @@ module.exports = {
     getChatFolowings,
     followOrUnfollow,
     getAllPublishers,
-    getAllFollows
+    getAllFollows,
+    getNewsByChatIds
 };

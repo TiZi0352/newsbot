@@ -21,18 +21,21 @@ bot.on('message', (msg) => {
         case "Європейська Правда": bot.sendMessage(chatId, "It may take more time than others! Loading..."); newsHandler.sendEPNews(chatId); break;
         case "Українська Правда": bot.sendMessage(chatId, "It may take more time than others! Loading..."); newsHandler.sendUPNews(chatId); break;
         case "Reuters": newsHandler.sendReutersNews(chatId); break;
+        case "Радіо Свобода": newsHandler.sendRadioSvobodaNews(chatId); break;
 
         case "Follow Interfax": followOrUnfollow(chatId, "Interfax", "Interfax has been successfully followed ✅", true); break;
         case "Follow Новое Время": followOrUnfollow(chatId, "Новое Время", "Новое Время has been successfully followed ✅", true); break;
         case "Follow Європейська Правда": followOrUnfollow(chatId, "Європейська Правда", "Європейська Правда has been successfully followed ✅", true); break;
         case "Follow Українська Правда": followOrUnfollow(chatId, "Українська Правда", "Українська Правда has been successfully followed ✅", true); break;
         case "Follow Reuters": followOrUnfollow(chatId, "Reuters", "Reuters has been successfully followed ✅", true); break;
+        case "Follow Радіо Свобода": followOrUnfollow(chatId, "Радіо Свобода", "Радіо Свобода has been successfully followed ✅", true); break;
 
         case "Unfollow Interfax": followOrUnfollow(chatId, "Interfax", "Interfax has been successfully unfollowed ✅"); break;
         case "Unfollow Новое Время": followOrUnfollow(chatId, "Новое Время", "Новое Время has been successfully unfollowed ✅"); break;
         case "Unfollow Європейська Правда": followOrUnfollow(chatId, "Європейська Правда", "Європейська Правда has been successfully unfollowed ✅"); break;
         case "Unfollow Українська Правда": followOrUnfollow(chatId, "Українська Правда", "Українська Правда has been successfully unfollowed ✅"); break;
         case "Unfollow Reuters": followOrUnfollow(chatId, "Reuters", "Reuters has been successfully unfollowed ✅"); break;
+        case "Unfollow Радіо Свобода": followOrUnfollow(chatId, "Радіо Свобода", "Радіо Свобода has been successfully unfollowed ✅"); break;
 
         case "Delete All News": newsHandler.deleteAll(chatId); break;
         case "/other":
@@ -82,7 +85,7 @@ const followOrUnfollow = (chatId, publisherName, responseMessage, isFollow) => {
     };
 }
 
-var j = schedule.scheduleJob('*/5 * * * *', function () {
+var j = schedule.scheduleJob('*/1 * * * *', function () {
     var follows = repository.getAllFollows();
 
     console.log(new Date());
@@ -102,6 +105,9 @@ var j = schedule.scheduleJob('*/5 * * * *', function () {
 
         if (follows[i].publisherName == "Reuters")
             newsHandler.sendReutersNews(follows[i].chatId, true);
+
+        if (follows[i].publisherName == "Радіо Свобода")
+            newsHandler.sendRadioSvobodaNews(follows[i].chatId, true);        
     }
 });
 
@@ -117,7 +123,7 @@ const menuOptions = {
     },
     "publishers": {
         "reply_markup": {
-            "keyboard": [["Interfax", "Новое Время"], ["Європейська Правда", "Reuters"], ["Українська Правда"], ["Home"]]
+            "keyboard": [["Interfax", "Новое Время"], ["Європейська Правда", "Reuters"], ["Українська Правда", "Радіо Свобода"], ["Home"]]
         }
     },
     "optionActions": {
