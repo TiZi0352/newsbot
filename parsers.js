@@ -1,8 +1,26 @@
 const Promise = require('bluebird');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const request = require('request');
+const bot = require('./botconfig');
 
-const parseInterfax = (chatId, isWebJob) => {
+const parseNews = (publisherName, chatId) => {
+    switch (publisherName) {
+        case "Interfax": return parseInterfax(); break;
+        case "Новое Время": return parseNV(); break;
+        case "Європейська Правда": return parseEP(); break;
+        case "Українська Правда": return parseUP(); break;
+        case "Reuters": return parseReuters(); break;
+        case "Радіо Свобода": return parseRadioSvoboda(); break;
+        case "AFP": return parseAFP(); break;
+        case "AP": return parseAP(); break;
+        case "BBC UA": return parseBBCUA(); break;
+        // case "Coronavirus UA": return parseCVUA(chatId); break;
+        default: break;
+    }
+}
+
+const parseInterfax = () => {
     var URL = 'https://interfax.com.ua/news/latest.html';
 
     return new Promise((resolve, reject) => {
@@ -32,7 +50,7 @@ const parseInterfax = (chatId, isWebJob) => {
     });
 };
 
-const parseNV = (chatId, isWebJob) => {
+const parseNV = () => {
     var URL = 'https://nv.ua/allnews.html';
 
     return new Promise((resolve, reject) => {
@@ -62,7 +80,7 @@ const parseNV = (chatId, isWebJob) => {
     });
 };
 
-const parseEP = (chatId, isWebJob) => {
+const parseEP = () => {
     var URL = 'https://www.eurointegration.com.ua/news/';
 
     return new Promise((resolve, reject) => {
@@ -92,7 +110,7 @@ const parseEP = (chatId, isWebJob) => {
     });
 };
 
-const parseUP = (chatId, isWebJob) => {
+const parseUP = () => {
     var URL = 'https://www.pravda.com.ua/news/';
 
     return new Promise((resolve, reject) => {
@@ -122,7 +140,7 @@ const parseUP = (chatId, isWebJob) => {
     });
 };
 
-const parseReuters = (chatId, isWebJob) => {
+const parseReuters = () => {
     var URL = 'https://ru.reuters.com/news';
 
     return new Promise((resolve, reject) => {
@@ -152,7 +170,7 @@ const parseReuters = (chatId, isWebJob) => {
     });
 };
 
-const parseRadioSvoboda = (chatId, isWebJob) => {
+const parseRadioSvoboda = () => {
     var URL = 'https://www.radiosvoboda.org/p/4399.html';
 
     return new Promise((resolve, reject) => {
@@ -182,11 +200,112 @@ const parseRadioSvoboda = (chatId, isWebJob) => {
     });
 };
 
+const parseAFP = () => {
+    var URL = 'https://www.afp.com/en';
+
+    return new Promise((resolve, reject) => {
+        axios.get(URL)
+            .then((res) => {
+                // parsing keys and preArray
+                var body = res.data;
+                var start = '>Latest wires<';
+                var end = '<div class="load_more_news';
+                // var textStart = '<a';
+                var hrefKey = 'href="';
+                var newsBody = body.substring(body.indexOf(start) + start.length, body.indexOf(end));
+                var arr = newsBody.split('<a').reverse();
+
+                // select urls if not empty
+                var newsUrls = arr.map(x => {
+                    // var text = x.substring(x.indexOf(textStart) + textStart.length);
+                    return x.substring(x.indexOf(hrefKey) + hrefKey.length, x.indexOf('">'));
+                }).filter(x => x.indexOf("/") != -1).map(x => "https://www.afp.com" + x).filter((v, i, a) => a.indexOf(v) === i);
+
+                resolve(newsUrls);
+            })
+            .catch((error) => {
+                console.log('AFP parsing error: ' + error);
+                reject("AFP parsing error");
+            });
+    });
+};
+
+const parseAP = () => {
+    var URL = 'https://apnews.com';
+
+    return new Promise((resolve, reject) => {
+        axios.get(URL)
+            .then((res) => {
+                // parsing keys and preArray
+                var body = res.data;
+                var start = '>Most Recent<';
+                var end = '</article>';
+                // var textStart = '<a';
+                var hrefKey = 'href="';
+                var newsBody = body.substring(body.indexOf(start) + start.length, body.indexOf(end));
+                var arr = newsBody.split('data-key="card-headline"').reverse();
+
+                // select urls if not empty
+                var newsUrls = arr.map(x => {
+                    // var text = x.substring(x.indexOf(textStart) + textStart.length);
+                    return x.substring(x.indexOf(hrefKey) + hrefKey.length, x.indexOf('">'));
+                }).filter(x => x.indexOf("/") != -1).map(x => "https://apnews.com" + x).filter((v, i, a) => a.indexOf(v) === i);
+
+                resolve(newsUrls);
+            })
+            .catch((error) => {
+                console.log('AP parsing error: ' + error);
+                reject("AP parsing error");
+            });
+    });
+};
+
+const parseBBCUA = () => {
+    var URL = 'https://www.bbc.com/ukrainian';
+
+    return new Promise((resolve, reject) => {
+        axios.get(URL)
+            .then((res) => {
+                // parsing keys and preArray
+                var body = res.data;
+                var start = '<section role="region" aria-labelledby="Top-stories"';
+                var end = '</section>';
+                // var textStart = '<a';
+                var hrefKey = 'href="';
+                var newsBody = body.substring(body.indexOf(start) + start.length, body.indexOf(end));
+                var arr = newsBody.split('<a').reverse();
+
+                // select urls if not empty
+                var newsUrls = arr.map(x => {
+                    // var text = x.substring(x.indexOf(textStart) + textStart.length);
+                    return x.substring(x.indexOf(hrefKey) + hrefKey.length, x.indexOf('" '));
+                }).filter(x => x.indexOf("/ukrainian") != -1).map(x => "https://www.bbc.com" + x).filter((v, i, a) => a.indexOf(v) === i);
+
+                resolve(newsUrls);
+            })
+            .catch((error) => {
+                console.log('AP parsing error: ' + error);
+                reject("AP parsing error");
+            });
+    });
+};
+
+// const parseCVUA = (chatId) => {
+//     return new Promise((resolve, reject) => {
+//         bot.sendPhoto(chatId, "https://public.tableau.com/static/images/mo/monitor_15841091301660/sheet4/1.png", {
+//             // caption: "https://public.tableau.com/profile/publicviz#!/vizhome/monitor_15841091301660/sheet0",
+//             reply_markup: {
+//                 inline_keyboard: [[{
+//                     text: 'Details',
+//                     switch_inline_query: 'share',
+//                     url: "https://public.tableau.com/profile/publicviz#!/vizhome/monitor_15841091301660/sheet0"
+//                 }]]
+//             }
+//         });
+//         resolve(true);
+//     });
+// };
+
 module.exports = {
-    parseInterfax,
-    parseNV,
-    parseEP,
-    parseUP,
-    parseReuters,
-    parseRadioSvoboda
+    parseNews
 };

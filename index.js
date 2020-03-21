@@ -3,46 +3,45 @@ const bot = require('./botconfig');
 const newsHandler = require('./newsHandler');
 const schedule = require('node-schedule');
 const parser = require('./parsers');
+const staticData = require('./staticData');
 
 repository.initDb();
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
 
-    switch (msg.text) {
-        case "/start": bot.sendMessage(chatId, "Welcome to News Bot!", menuOptions["home"]); break;
-        case "Home": bot.sendMessage(chatId, "Home", menuOptions["home"]); break;
-        case "Get news": bot.sendMessage(chatId, "Choose a publisher", menuOptions["publishers"]); break;
-        case "Follow": followAction(chatId); break;
-        case "Options": bot.sendMessage(chatId, "Choose an action", menuOptions["optionActions"]); break;
+    if (msg.text == "/start")
+        bot.sendMessage(chatId, "Welcome to News Bot!", staticData.menuOptions["home"]);
+    else if (msg.text == "Home")
+        bot.sendMessage(chatId, "Home", staticData.menuOptions["home"]);
+    else if (msg.text == "Get news")
+        bot.sendMessage(chatId, "Choose a publisher", staticData.menuOptions["publishers"]);
+    else if (msg.text == "Follow")
+        followAction(chatId);
+    else if (msg.text == "Options")
+        bot.sendMessage(chatId, "Choose an action", staticData.menuOptions["optionActions"]);
+    else if (msg.text == "Delete All News")
+        newsHandler.deleteAll(chatId);
 
-        case "Interfax": newsHandler.sendInterfaxNews(chatId); break;
-        case "Новое Время": newsHandler.sendNVNews(chatId); break;
-        case "Європейська Правда": bot.sendMessage(chatId, "It may take more time than others! Loading..."); newsHandler.sendEPNews(chatId); break;
-        case "Українська Правда": bot.sendMessage(chatId, "It may take more time than others! Loading..."); newsHandler.sendUPNews(chatId); break;
-        case "Reuters": newsHandler.sendReutersNews(chatId); break;
-        case "Радіо Свобода": newsHandler.sendRadioSvobodaNews(chatId); break;
-
-        case "Follow Interfax": followOrUnfollow(chatId, "Interfax", "Interfax has been successfully followed ✅", true); break;
-        case "Follow Новое Время": followOrUnfollow(chatId, "Новое Время", "Новое Время has been successfully followed ✅", true); break;
-        case "Follow Європейська Правда": followOrUnfollow(chatId, "Європейська Правда", "Європейська Правда has been successfully followed ✅", true); break;
-        case "Follow Українська Правда": followOrUnfollow(chatId, "Українська Правда", "Українська Правда has been successfully followed ✅", true); break;
-        case "Follow Reuters": followOrUnfollow(chatId, "Reuters", "Reuters has been successfully followed ✅", true); break;
-        case "Follow Радіо Свобода": followOrUnfollow(chatId, "Радіо Свобода", "Радіо Свобода has been successfully followed ✅", true); break;
-
-        case "Unfollow Interfax": followOrUnfollow(chatId, "Interfax", "Interfax has been successfully unfollowed ✅"); break;
-        case "Unfollow Новое Время": followOrUnfollow(chatId, "Новое Время", "Новое Время has been successfully unfollowed ✅"); break;
-        case "Unfollow Європейська Правда": followOrUnfollow(chatId, "Європейська Правда", "Європейська Правда has been successfully unfollowed ✅"); break;
-        case "Unfollow Українська Правда": followOrUnfollow(chatId, "Українська Правда", "Українська Правда has been successfully unfollowed ✅"); break;
-        case "Unfollow Reuters": followOrUnfollow(chatId, "Reuters", "Reuters has been successfully unfollowed ✅"); break;
-        case "Unfollow Радіо Свобода": followOrUnfollow(chatId, "Радіо Свобода", "Радіо Свобода has been successfully unfollowed ✅"); break;
-
-        case "Delete All News": newsHandler.deleteAll(chatId); break;
-        case "/other":
-            console.log("res" + parser.parseInterfax());
-            break;
-        default: bot.sendMessage(chatId, "Choose request from the menu!"); break;
+    if (staticData.publishers.includes(msg.text)) {
+        newsHandler.sendNews(msg.text, chatId);
     }
+
+    // bot.sendMessage(chatId, "Choose request from the menu!");
+});
+
+bot.onText(/\Follow (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+
+    if (staticData.publishers.includes(match[1]))
+        followOrUnfollow(chatId, match[1], `${match[1]} has been successfully followed ✅`, true);
+});
+
+bot.onText(/\Unfollow (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+
+    if (staticData.publishers.includes(match[1]))
+        followOrUnfollow(chatId, match[1], `${match[1]} has been successfully unfollowed ✅`);
 });
 
 const followAction = (chatId) => {
@@ -91,44 +90,10 @@ var j = schedule.scheduleJob('*/1 * * * *', function () {
     console.log(new Date());
 
     for (let i = 0; i < follows.length; ++i) {
-        if (follows[i].publisherName == "Interfax")
-            newsHandler.sendInterfaxNews(follows[i].chatId, true);
-
-        if (follows[i].publisherName == "Новое Время")
-            newsHandler.sendNVNews(follows[i].chatId, true);
-
-        if (follows[i].publisherName == "Європейська Правда")
-            newsHandler.sendEPNews(follows[i].chatId, true);
-
-        if (follows[i].publisherName == "Українська Правда")
-            newsHandler.sendUPNews(follows[i].chatId, true);
-
-        if (follows[i].publisherName == "Reuters")
-            newsHandler.sendReutersNews(follows[i].chatId, true);
-
-        if (follows[i].publisherName == "Радіо Свобода")
-            newsHandler.sendRadioSvobodaNews(follows[i].chatId, true);        
+        newsHandler.sendNews(follows[i].publisherName, follows[i].chatId, true);
     }
 });
 
 bot.onText(/\/get (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
 });
-
-const menuOptions = {
-    "home": {
-        "reply_markup": {
-            "keyboard": [["Follow", "Get news"], ["Options"]]
-        }
-    },
-    "publishers": {
-        "reply_markup": {
-            "keyboard": [["Interfax", "Новое Время"], ["Європейська Правда", "Reuters"], ["Українська Правда", "Радіо Свобода"], ["Home"]]
-        }
-    },
-    "optionActions": {
-        "reply_markup": {
-            "keyboard": [["Delete All News"], ["Home"]]
-        }
-    }
-};

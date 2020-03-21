@@ -95,6 +95,33 @@ const initDb = () => {
     //         console.log(res);
     //     }
     // });
+
+    // sqlite.insert("publishers", {
+    //     name: "AFP",
+    //     url: "https://www.afp.com"
+    // }, function (res) {
+    //     if (res.error) {
+    //         console.log(res);
+    //     }
+    // });
+
+    // sqlite.insert("publishers", {
+    //     name: "AP",
+    //     url: "https://apnews.com"
+    // }, function (res) {
+    //     if (res.error) {
+    //         console.log(res);
+    //     }
+    // });
+
+    // sqlite.insert("publishers", {
+    //     name: "BBC UA",
+    //     url: "https://www.bbc.com/ukrainian"
+    // }, function (res) {
+    //     if (res.error) {
+    //         console.log(res);
+    //     }
+    // });
 }
 
 const getNews = (chatId, newsUrls) => {
@@ -129,7 +156,7 @@ const insertAndSendNews = (chatId, newsUrls) => {
 
                 sqlite.insert("news", objectToInsert, function (res) {
                     if (res.error) {
-                        console.log(res);
+                        console.log("insertAndSendNews on insert" + res);
                     }
                 });
             });
@@ -167,17 +194,26 @@ const followOrUnfollow = (chatId, publisherName, isFollow, callback) => {
             date: new Date().getTime()
         }, function (res) {
             if (res.error)
-                console.log(res);
+                console.log("followOrUnfollow on insert" + res);
             else
                 callback();
         });
     else
         sqlite.run(`DELETE FROM follows where chatId = '${chatId}' AND publisherName = '${publisherName}'`, {}, function (res) {
             if (res.error)
-                console.log(res);
+                console.log("followOrUnfollow on delete" + res);
             else
                 callback();
         });
+}
+
+const deletePublisher = (publisherName) => {
+    sqlite.run(`DELETE FROM publishers where name = '${publisherName}'`, {}, function (res) {
+        if (res.error)
+            console.log("deletePublisher" + res);
+        else
+            callback();
+    });
 }
 
 module.exports = {
@@ -190,5 +226,6 @@ module.exports = {
     followOrUnfollow,
     getAllPublishers,
     getAllFollows,
-    getNewsByChatIds
+    getNewsByChatIds,
+    deletePublisher
 };
