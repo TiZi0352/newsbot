@@ -42,6 +42,16 @@ const initDb = () => {
                 throw res.error;
         });
 
+    sqlite.run(`CREATE TABLE IF NOT EXISTS emailFollows(
+            id  INTEGER PRIMARY KEY AUTOINCREMENT, 
+            email TEXT NOT NULL,
+            chatId INTEGER NOT NULL UNIQUE,
+            date INTEGER NOT NULL);`,
+        function (res) {
+            if (res.error)
+                throw res.error;
+        });
+
     // sqlite.insert("publishers", {
     //     name: "Interfax",
     //     url: "https://interfax.com.ua"
@@ -216,6 +226,23 @@ const deletePublisher = (publisherName) => {
     });
 }
 
+const addEmailFollow = (chatId, email) => {
+    return sqlite.insert("emailFollows", {
+        chatId: chatId,
+        email: email,
+        date: new Date().getTime()
+    }, function (res) {
+        if (res.error)
+            console.log("addEmailFollow on insert" + res);
+        else
+            callback();
+    });
+}
+
+const getEmailChatFolowings = (chatId) => {
+    return sqlite.run(`SELECT * FROM emailFollows where chatId = '${chatId}'`);
+}
+
 module.exports = {
     initDb,
     getNews,
@@ -227,5 +254,7 @@ module.exports = {
     getAllPublishers,
     getAllFollows,
     getNewsByChatIds,
-    deletePublisher
+    deletePublisher,
+    addEmailFollow,
+    getEmailChatFolowings
 };

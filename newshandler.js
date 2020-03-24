@@ -3,7 +3,7 @@ const bot = require('./botconfig');
 const parser = require('./parsers');
 
 const sendNews = (publisherName, chatId, isWebJob) => {
-    if (publisherName == "Українська Правда" || publisherName == "Європейська Правда")
+    if ((publisherName == "Українська Правда" || publisherName == "Європейська Правда") && !isWebJob)
         bot.sendMessage(chatId, "It may take more time than others! Loading...");
 
     parser.parseNews(publisherName, chatId).then((newsUrls) => {

@@ -4,11 +4,35 @@ const newsHandler = require('./newsHandler');
 const schedule = require('node-schedule');
 const parser = require('./parsers');
 const staticData = require('./staticData');
+const nodemailer = require('nodemailer');
 
 repository.initDb();
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
+
+    // var transporter = nodemailer.createTransport({
+    //     service: 'gmail',
+    //     auth: {
+    //         user: 'taras.zoshchuk@gmail.com',
+    //         pass: 'Supermultigmail321'
+    //     }
+    // });
+
+    // var mailOptions = {
+    //     from: 'vladimir.putin@gmail.com',
+    //     to: '',
+    //     subject: 'Sending Email using Node.js',
+    //     text: 'That was easy!'
+    // };
+
+    // transporter.sendMail(mailOptions, function (error, info) {
+    //     if (error) {
+    //         console.log(error);
+    //     } else {
+    //         console.log('Email sent: ' + info.response);
+    //     }
+    // });
 
     if (msg.text == "/start")
         bot.sendMessage(chatId, "Welcome to News Bot!", staticData.menuOptions["home"]);
@@ -19,9 +43,13 @@ bot.on('message', (msg) => {
     else if (msg.text == "Follow")
         followAction(chatId);
     else if (msg.text == "Options")
-        bot.sendMessage(chatId, "Choose an action", staticData.menuOptions["optionActions"]);
+        optionAction(chatId);
     else if (msg.text == "Delete All News")
         newsHandler.deleteAll(chatId);
+    else if (msg.text == "Receive Emails")
+        repository.addEmailFollow(chatId);
+    else if (msg.text == "Not Receive Emails")
+        ;
 
     if (staticData.publishers.includes(msg.text)) {
         newsHandler.sendNews(msg.text, chatId);
@@ -69,6 +97,22 @@ const followAction = (chatId) => {
     keyboards.push(["Home"]);
 
     bot.sendMessage(chatId, "Choose a publisher to follow", {
+        "reply_markup": {
+            "keyboard": keyboards
+        }
+    });
+};
+
+const optionAction = (chatId) => {
+    var emailFollows = repository.getEmailChatFolowings(chatId);
+
+    var keyboards = [];
+
+    keyboards.push(["Delete All News", (emailFollows.length ? "Not Receive Emails" : "Receive Emails")]);
+
+    keyboards.push(["Home"]);
+
+    bot.sendMessage(chatId, "Choose an action", {
         "reply_markup": {
             "keyboard": keyboards
         }
