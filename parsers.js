@@ -238,17 +238,19 @@ const parseAP = () => {
             .then((res) => {
                 // parsing keys and preArray
                 var body = res.data;
-                var start = '>Most Recent<';
-                var end = '</article>';
+                var start = 'data-tb-region="Most recent"';
+                var end = '<aside class="RightRail">';
                 // var textStart = '<a';
-                var hrefKey = 'href="';
+                var hrefKey = 'data-key="card-headline" href="';
                 var newsBody = body.substring(body.indexOf(start) + start.length, body.indexOf(end));
-                var arr = newsBody.split('data-key="card-headline"').reverse();
+                var arr = newsBody.split('class="FeedCard').reverse();
 
                 // select urls if not empty
                 var newsUrls = arr.map(x => {
                     // var text = x.substring(x.indexOf(textStart) + textStart.length);
-                    return x.substring(x.indexOf(hrefKey) + hrefKey.length, x.indexOf('">'));
+                    var cut = x.substring(x.indexOf(hrefKey) + hrefKey.length, x.length - 1);
+                    cut = cut.substring(0, cut.indexOf('"'));
+                    return cut;
                 }).filter(x => x.indexOf("/") != -1).map(x => "https://apnews.com" + x).filter((v, i, a) => a.indexOf(v) === i);
 
                 resolve(newsUrls);
