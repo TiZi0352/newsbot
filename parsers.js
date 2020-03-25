@@ -253,8 +253,6 @@ const parseAP = () => {
                     return cut;
                 }).filter(x => x.indexOf("/") != -1).map(x => "https://apnews.com" + x).filter((v, i, a) => a.indexOf(v) === i);
 
-                console.log(newsUrls);
-
                 resolve(newsUrls);
             })
             .catch((error) => {
