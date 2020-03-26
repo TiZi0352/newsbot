@@ -52,7 +52,10 @@ bot.on('message', (msg) => {
         ;
 
     if (staticData.publishers.includes(msg.text)) {
-        newsHandler.sendNews(msg.text, chatId);
+        if (msg.text == 'COVID-19 UA')
+            newsHandler.COVIDUAHandle(chatId);
+        else
+            newsHandler.sendNews(msg.text, chatId);
     }
 
     // bot.sendMessage(chatId, "Choose request from the menu!");
@@ -128,13 +131,23 @@ const followOrUnfollow = (chatId, publisherName, responseMessage, isFollow) => {
     };
 }
 
-var j = schedule.scheduleJob('*/1 * * * *', function () {
+schedule.scheduleJob('*/1 * * * *', function () {
     var follows = repository.getAllFollows();
 
     console.log(new Date());
 
     for (let i = 0; i < follows.length; ++i) {
-        newsHandler.sendNews(follows[i].publisherName, follows[i].chatId, true);
+        if (follows[i].publisherName != 'COVID-19 UA')
+            newsHandler.sendNews(follows[i].publisherName, follows[i].chatId, true);
+    }
+});
+
+schedule.scheduleJob('30 10 * * *', function () {
+    var follows = repository.getAllFollows();
+
+    for (let i = 0; i < follows.length; ++i) {
+        if (follows[i].publisherName == 'COVID-19 UA')
+            newsHandler.COVIDUAHandle(follows[i].chatId);
     }
 });
 

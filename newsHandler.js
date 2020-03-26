@@ -12,6 +12,38 @@ const sendNews = (publisherName, chatId, isWebJob) => {
     });
 };
 
+const COVIDUAHandle = (chatId) => {
+    parser.parseUPCOVIDUA().then((result) => {
+        var conf = result.confirmed[result.confirmed.length - 1]
+        var confChange = conf - result.confirmed[result.confirmed.length - 2]
+
+        var recov = result.recovered[result.recovered.length - 1]
+        var recovChange = recov - result.recovered[result.recovered.length - 2]
+
+        var deaths = result.deaths[result.deaths.length - 1]
+        var deathsChange = deaths - result.deaths[result.deaths.length - 2]
+
+        var active = conf - recov - deaths;
+        var activeChange = confChange - recovChange - deathsChange;
+
+        bot.sendMessage(chatId,
+            `<u>Ukraine</u>
+
+Confirmed:   <b>${conf}</b> (${addSign(confChange)})
+Deaths:          <b>${recov}</b> (${addSign(recovChange)})
+Recovered:   <b>${deaths}</b> (${addSign(deathsChange)})
+Active:            <b>${active}</b> (${addSign(activeChange)})
+
+Updated:   <b>${result.display_updated}</b>`,
+            { parse_mode: 'HTML' });
+
+        function addSign(value) {
+            return (value > 0 ? '+' : '') + value;
+        }
+    }).catch((res) => {
+    });
+}
+
 const insertAndSendUnique = (chatId, newsUrls, publisherName, isWebJob) => {
     const news = repository.getNews(chatId, newsUrls);
 
@@ -39,5 +71,6 @@ const deleteAll = (chatId) => {
 
 module.exports = {
     deleteAll,
-    sendNews
+    sendNews,
+    COVIDUAHandle
 };

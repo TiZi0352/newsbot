@@ -132,6 +132,15 @@ const initDb = () => {
     //         console.log(res);
     //     }
     // });
+
+    // sqlite.insert("publishers", {
+    //     name: "COVID-19 UA",
+    //     url: "https://www.pravda.com.ua/cdn/covid-19/cpa/"
+    // }, function (res) {
+    //     if (res.error) {
+    //         console.log(res);
+    //     }
+    // });
 }
 
 const getNews = (chatId, newsUrls) => {

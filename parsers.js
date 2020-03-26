@@ -292,6 +292,21 @@ const parseBBCUA = () => {
     });
 };
 
+const parseUPCOVIDUA = () => {
+    var URL = 'https://cdn.pravda.com/cdn/covid-19/ukraine.json';
+
+    return new Promise((resolve, reject) => {
+        axios.get(URL)
+            .then((res) => {
+                resolve(res.data);
+            })
+            .catch((error) => {
+                console.log('COVIDUA parsing error: ' + error);
+                reject("COVIDUA parsing error");
+            });
+    });
+};
+
 // const parseCVUA = (chatId) => {
 //     return new Promise((resolve, reject) => {
 //         bot.sendPhoto(chatId, "https://public.tableau.com/static/images/mo/monitor_15841091301660/sheet4/1.png", {
@@ -309,5 +324,6 @@ const parseBBCUA = () => {
 // };
 
 module.exports = {
-    parseNews
+    parseNews,
+    parseUPCOVIDUA
 };

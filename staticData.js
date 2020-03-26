@@ -8,7 +8,7 @@ const publishers = [
     "AFP",
     "AP",
     "BBC UA",
-    // "Coronavirus UA"
+    "COVID-19 UA"
 ]
 
 const menuOptions = {
@@ -20,7 +20,7 @@ const menuOptions = {
     "publishers": {
         "reply_markup": {
             "keyboard": [["Interfax", "Новое Время"], ["Європейська Правда", "Reuters"], ["Українська Правда", "Радіо Свобода"],
-            ["AFP", "AP"], ["BBC UA"], ["Home"]]
+            ["AFP", "AP"], ["BBC UA", "COVID-19 UA"], ["Home"]]
         }
     },
     "optionActions": {
